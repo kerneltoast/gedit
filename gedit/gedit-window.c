@@ -1405,6 +1405,7 @@ update_statusbar (GeditWindow *window,
 	if (new_view)
 	{
 		GeditDocument *doc;
+		guint old_tab_width;
 
 		doc = GEDIT_DOCUMENT (gtk_text_view_get_buffer (GTK_TEXT_VIEW (new_view)));
 
@@ -1428,8 +1429,16 @@ update_statusbar (GeditWindow *window,
 								      G_CALLBACK (language_changed),
 								      window);
 
-		/* call it for the first time */
+		/* call it twice for the first time with a different tab width, otherwise a
+		 * bug (in pango?) causes the default tab width to render incorrectly.
+		 * no need to check bounds on old_tab_width + 1 */
+		old_tab_width = gtk_source_view_get_tab_width (GTK_SOURCE_VIEW (new_view));
+		gtk_source_view_set_tab_width (GTK_SOURCE_VIEW (new_view), old_tab_width + 1);
 		tab_width_changed (G_OBJECT (new_view), NULL, window);
+
+		gtk_source_view_set_tab_width (GTK_SOURCE_VIEW (new_view), old_tab_width);
+		tab_width_changed (G_OBJECT (new_view), NULL, window);
+
 		language_changed (G_OBJECT (doc), NULL, window);
 	}
 }
